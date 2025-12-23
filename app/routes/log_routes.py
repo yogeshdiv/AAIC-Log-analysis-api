@@ -1,4 +1,5 @@
 """Routes for log access and statistics."""
+from datetime import datetime
 import os
 from pathlib import Path
 from typing import List, Optional
@@ -35,12 +36,16 @@ def list_logs(
     repo: LogRepository = Depends(get_repository),
 ):
     """List log entries with optional filtering and pagination."""
-    start_dt = parse_datetime(start_time, "start_time")
-    end_dt = parse_datetime(end_time, "end_time")
+    try:
+        start_dt: Optional[datetime] = parse_datetime(start_time)
+        end_dt: Optional[datetime] = parse_datetime(end_time)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
 
     entries = repo.get_entries(refresh=refresh)
-    print(entries)
-    print(start_dt, end_dt)
     filtered = repo.filter_entries(
         entries,
         level=level,
@@ -57,6 +62,7 @@ def log_stats(
     refresh: bool = Query(False, description="Force reload from disk"),
     repo: LogRepository = Depends(get_repository),
 ):
+    """Get statistics about the log entries."""
     entries = repo.get_entries(refresh=refresh)
     total, by_level, by_component = repo.stats(entries)
     return LogStatsSchema(total=total, by_level=by_level, by_component=by_component)
@@ -68,6 +74,7 @@ def get_log(
     refresh: bool = Query(False, description="Force reload from disk"),
     repo: LogRepository = Depends(get_repository),
 ):
+    """Get a specific log entry by its ID."""
     entry = repo.get_entry(log_id, refresh=refresh)
     if entry is None:
         raise HTTPException(

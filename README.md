@@ -1,33 +1,77 @@
-# Log Access API
+## Log Access API
 
-FastAPI service to read tab-separated log files and expose them via REST for filtering and basic analytics.
+A small FastAPI service that reads log files from disk and exposes them over a REST API for querying and basic analysis.
 
-## Assumptions
-- Log files live in `LOG_DIR` (default: `logs/` next to `app/`) and use the format `Timestamp<TAB>Level<TAB>Component<TAB>Message`.
-- Only files ending with `.log` are parsed; other files in the directory are ignored.
-- Timestamps use `YYYY-MM-DD HH:MM:SS` (naive, assumed UTC). Lines that cannot be parsed or are malformed are skipped.
-- `log_id` is deterministic per file/line: `{file_index}-{line_number}` based on alphabetical ordering of `.log` files.
-- Pagination is provided via `offset` and `limit` for convenience.
+The service is read-only and is intended to make it easy to inspect and filter log data without importing it into a database.
 
-## Getting started
-```bash
+## Assumptions & Design Notes
+
+Log files are read from a directory defined by LOG_DIR (defaults to a logs/ folder next to the app/ directory).
+
+Each log entry is expected to be a single line in the format:
+Timestamp<TAB>Level<TAB>Component<TAB>Message
+
+Only files with a .log extension are processed. Any other files in the directory are ignored.
+
+Timestamps must follow the format YYYY-MM-DD HH:MM:SS (treated as naive/UTC).
+
+Malformed lines or lines with invalid timestamps are skipped rather than causing the service to fail.
+
+Each log entry is assigned a deterministic log_id using the pattern {file_index}-{line_number}, where files are ordered alphabetically.
+
+Logs are cached in memory and reloaded only when files change (or when explicitly requested).
+
+Pagination is supported using offset and limit to avoid returning very large responses.
+
+## Running the service
+
+# Install dependencies:
+
 pip install -r requirements.txt
+
+
+# Start the API:
+
 uvicorn app.main:app --reload
-```
 
-Environment variable override for log directory:
-```bash
-# PowerShell
-$env:LOG_DIR="C:\path\to\logs"
-uvicorn app.main:app --reload
-```
 
-Open docs at http://localhost:8000/docs
+Once running, interactive API documentation is available at:
 
-## API
-- `GET /logs`: optional `level`, `component`, `start_time`, `end_time`, `offset`, `limit`, `refresh`.
-- `GET /logs/stats`: returns counts per level/component and total.
-- `GET /logs/{log_id}`: fetch a single entry.
+http://localhost:8000/docs
 
-## Sample data
-`logs/sample.log` contains four example entries for quick manual testing.
+## API Endpoints
+
+GET /logs
+Returns log entries with optional filters:
+
+level
+
+component
+
+start_time
+
+end_time
+
+offset
+
+limit
+
+refresh (forces reload from disk)
+
+## GET /logs/stats
+Returns basic statistics:
+
+total log count
+
+count per log level
+
+count per component
+
+## GET /logs/{log_id}
+Returns a single log entry by its log_id.
+
+Sample data
+
+## A small example log file is provided at:
+
+logs/sample.log

@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class LogEntrySchema(BaseModel):
+    """Schema representing a single log entry."""
     id: str
     timestamp: datetime
     level: str
@@ -14,6 +15,7 @@ class LogEntrySchema(BaseModel):
 
 
 class LogStatsSchema(BaseModel):
+    """Schema representing log statistics."""
     total: int
     by_level: Dict[str, int]
     by_component: Dict[str, int]
