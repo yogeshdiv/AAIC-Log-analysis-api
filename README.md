@@ -13,65 +13,66 @@ Timestamp<TAB>Level<TAB>Component<TAB>Message
 
 Only files with a .log extension are processed. Any other files in the directory are ignored.
 
-Timestamps must follow the format YYYY-MM-DD HH:MM:SS (treated as naive/UTC).
+Timestamps must follow the format YYYY-MM-DD HH:MM:SS and are treated as naive/UTC.
 
 Malformed lines or lines with invalid timestamps are skipped rather than causing the service to fail.
 
 Each log entry is assigned a deterministic log_id using the pattern {file_index}-{line_number}, where files are ordered alphabetically.
 
-Logs are cached in memory and reloaded only when files change (or when explicitly requested).
+Logs are cached in memory and reloaded only when files change or when explicitly requested.
 
 Pagination is supported using offset and limit to avoid returning very large responses.
 
-## Running the service
+## Running the Service
 
-# Install dependencies:
+Install dependencies
 
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
+Start the API
 
-# Start the API:
+`uvicorn app.main:app --reload`
 
-uvicorn app.main:app --reload
+## Once running, interactive API documentation is available at:
 
-
-Once running, interactive API documentation is available at:
-
-http://localhost:8000/docs
+`http://localhost:8000/docs`
 
 ## API Endpoints
 
-GET /logs
+`GET /logs`
+
 Returns log entries with optional filters:
 
-level
+1. level
 
-component
+2. component
 
-start_time
+3. start_time
 
-end_time
+4. end_time
 
-offset
+5. offset
 
-limit
+6. limit
 
-refresh (forces reload from disk)
+7. refresh (forces reload from disk)
 
-## GET /logs/stats
+`GET /logs/stats`
+
 Returns basic statistics:
 
-total log count
+1. total log count
 
-count per log level
+2. count per log level
 
-count per component
+3. count per component
 
-## GET /logs/{log_id}
+`GET /logs/{log_id}`
+
 Returns a single log entry by its log_id.
 
-Sample data
+## Sample Data
 
-## A small example log file is provided at:
+A small example log file is provided at:
 
-logs/sample.log
+`logs/sample.log`
